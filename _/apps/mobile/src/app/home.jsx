@@ -79,7 +79,7 @@ export default function HomeScreen() {
       title: 'Crop Recommendation',
       subtitle: 'Get AI-powered crop suggestions based on your soil and climate',
       color: '#4CAF50',
-      onPress: () => router.push('/crop-recommendation'),
+      onPress: () => router.push('/crop-recomendation-options'),
     },
     {
       icon: Camera,
