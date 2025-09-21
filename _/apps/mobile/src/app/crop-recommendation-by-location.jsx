@@ -1,140 +1,387 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { MapPin } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft, MapPin, Youtube } from 'lucide-react-native';
+
+const RecommendationCard = ({ crop, yield: cropYield, profit, sustainability, confidence, onLearnMore }) => (
+  <View style={{
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  }}>
+    <View style={{
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 16,
+    }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{
+          fontSize: 20,
+          fontWeight: 'bold',
+          color: '#2E7D32',
+          marginBottom: 4,
+        }}>
+          {crop}
+        </Text>
+        <Text style={{
+          fontSize: 14,
+          color: '#666',
+        }}>
+          Confidence: {confidence}%
+        </Text>
+      </View>
+      <TouchableOpacity
+        onPress={onLearnMore}
+        style={{
+          backgroundColor: '#F44336',
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          flexDirection: 'row',
+          alignItems: 'center',
+        }}
+      >
+        <Youtube size={16} color="white" />
+        <Text style={{
+          color: 'white',
+          fontSize: 12,
+          fontWeight: '600',
+          marginLeft: 4,
+        }}>
+          Learn
+        </Text>
+      </TouchableOpacity>
+    </View>
+
+    <View style={{
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    }}>
+      <View style={{ flex: 1, alignItems: 'center' }}>
+        <Text style={{
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: '#4CAF50',
+        }}>
+          {cropYield}
+        </Text>
+        <Text style={{
+          fontSize: 12,
+          color: '#666',
+          textAlign: 'center',
+        }}>
+          Expected Yield{'\n'}(tons/hectare)
+        </Text>
+      </View>
+      <View style={{ flex: 1, alignItems: 'center' }}>
+        <Text style={{
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: '#FF9800',
+        }}>
+          ₹{profit}
+        </Text>
+        <Text style={{
+          fontSize: 12,
+          color: '#666',
+          textAlign: 'center',
+        }}>
+          Profit Margin{'\n'}(per hectare)
+        </Text>
+      </View>
+      <View style={{ flex: 1, alignItems: 'center' }}>
+        <Text style={{
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: '#2196F3',
+        }}>
+          {sustainability}
+        </Text>
+        <Text style={{
+          fontSize: 12,
+          color: '#666',
+          textAlign: 'center',
+        }}>
+          Sustainability{'\n'}Score
+        </Text>
+      </View>
+    </View>
+
+    <View style={{
+      backgroundColor: '#F8F9FA',
+      borderRadius: 8,
+      padding: 12,
+    }}>
+      <Text style={{
+        fontSize: 14,
+        color: '#2E7D32',
+        fontWeight: '600',
+        marginBottom: 4,
+      }}>
+        Recommended Actions:
+      </Text>
+      <Text style={{
+        fontSize: 14,
+        color: '#666',
+        lineHeight: 20,
+      }}>
+        • Prepare soil with organic compost{'\n'}
+        • Plant during optimal season{'\n'}
+        • Monitor moisture levels regularly{'\n'}
+        • Apply recommended fertilizers
+      </Text>
+    </View>
+  </View>
+);
 
 export default function CropRecommendationLocation() {
-  const [location, setLocation] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [recommendation, setRecommendation] = useState(null);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [location, setLocation] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
-  const handleGetRecommendation = async () => {
+  // Mock recommendations data (same as IoT)
+  const recommendations = [
+    {
+      crop: 'Rice (Basmati)',
+      yield: '4.2',
+      profit: '45,000',
+      sustainability: '8.5',
+      confidence: 92
+    },
+    {
+      crop: 'Wheat',
+      yield: '3.8',
+      profit: '38,000',
+      sustainability: '7.8',
+      confidence: 87
+    },
+    {
+      crop: 'Sugarcane',
+      yield: '65',
+      profit: '85,000',
+      sustainability: '6.5',
+      confidence: 78
+    }
+  ];
+
+  const handleGetRecommendations = () => {
     if (!location.trim()) {
-      Alert.alert('Please enter your location');
+      Alert.alert('Missing Information', 'Please enter your location.');
       return;
     }
-    setLoading(true);
-    setRecommendation(null);
-
-    // Simulate API call
+    setIsLoading(true);
     setTimeout(() => {
-      setRecommendation([
-        'Wheat',
-        'Rice',
-        'Maize'
-      ]);
-      setLoading(false);
+      setIsLoading(false);
+      setShowResults(true);
     }, 1500);
   };
 
+  const handleLearnMore = (crop) => {
+    Alert.alert(
+      'Learning Resources',
+      `Opening YouTube tutorials for ${crop} farming...`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open YouTube', onPress: () => console.log('Open YouTube for', crop) }
+      ]
+    );
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={{
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-      }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View style={{
+      flex: 1,
+      backgroundColor: '#F8F9FA',
+      paddingTop: insets.top,
+    }}>
+      <StatusBar style="dark" />
+
+      {/* Header */}
       <View style={{
         backgroundColor: 'white',
-        borderRadius: 16,
-        padding: 24,
-        width: '100%',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+        flexDirection: 'row',
         alignItems: 'center',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        marginBottom: 24,
       }}>
-        <MapPin size={36} color="#2E7D32" style={{ marginBottom: 12 }} />
-        <Text style={{
-          fontSize: 22,
-          fontWeight: 'bold',
-          color: '#2E7D32',
-          marginBottom: 8,
-        }}>
-          Crop Recommendation by Location
-        </Text>
-        <Text style={{
-          fontSize: 15,
-          color: '#666',
-          marginBottom: 16,
-          textAlign: 'center',
-        }}>
-          Enter your village, city, or district to get crop suggestions for your area.
-        </Text>
-        <TextInput
-          value={location}
-          onChangeText={setLocation}
-          placeholder="Enter your location"
-          style={{
-            width: '100%',
-            borderWidth: 1,
-            borderColor: '#E0E0E0',
-            borderRadius: 10,
-            padding: 12,
-            marginBottom: 16,
-            fontSize: 16,
-            backgroundColor: '#FAFAFA',
-          }}
-        />
         <TouchableOpacity
-          onPress={handleGetRecommendation}
+          onPress={() => router.back()}
           style={{
-            backgroundColor: '#2E7D32',
-            borderRadius: 10,
-            paddingVertical: 12,
-            paddingHorizontal: 32,
-            alignItems: 'center',
-            marginBottom: 8,
-            width: '100%',
+            backgroundColor: '#F5F5F5',
+            borderRadius: 12,
+            padding: 8,
+            marginRight: 16,
           }}
-          disabled={loading}
         >
-          <Text style={{
-            color: 'white',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}>
-            {loading ? 'Getting Recommendation...' : 'Get Recommendation'}
-          </Text>
+          <ArrowLeft size={24} color="#666" />
         </TouchableOpacity>
-      </View>
-
-      {recommendation && (
-        <View style={{
-          backgroundColor: 'white',
-          borderRadius: 16,
-          padding: 20,
-          width: '100%',
-          alignItems: 'center',
-          elevation: 2,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.06,
-          shadowRadius: 4,
-        }}>
+        <View style={{ flex: 1 }}>
           <Text style={{
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: 'bold',
             color: '#2E7D32',
-            marginBottom: 8,
           }}>
-            Recommended Crops
+            Crop Recommendation
           </Text>
-          {recommendation.map((crop, idx) => (
-            <Text key={idx} style={{ fontSize: 16, color: '#444', marginBottom: 4 }}>
-              {crop}
-            </Text>
-          ))}
+          <Text style={{
+            fontSize: 14,
+            color: '#666',
+          }}>
+            By Location
+          </Text>
         </View>
-      )}
-    </KeyboardAvoidingView>
+      </View>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingVertical: 20,
+          paddingBottom: insets.bottom + 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {!showResults ? (
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 4,
+          }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#2E7D32',
+              marginBottom: 16,
+              textAlign: 'center',
+            }}>
+              Enter Your Location
+            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#FAFAFA',
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: '#E0E0E0',
+              paddingHorizontal: 12,
+              marginBottom: 20,
+            }}>
+              <MapPin size={22} color="#2E7D32" style={{ marginRight: 8 }} />
+              <TextInput
+                value={location}
+                onChangeText={setLocation}
+                placeholder="Enter your village, city"
+                style={{
+                  flex: 1,
+                  fontSize: 16,
+                  color: '#333',
+                  paddingVertical: 12,
+                }}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={handleGetRecommendations}
+              disabled={isLoading}
+              style={{
+                backgroundColor: isLoading ? '#E0E0E0' : '#2E7D32',
+                borderRadius: 12,
+                padding: 16,
+                alignItems: 'center',
+              }}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={{
+                  color: 'white',
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                }}>
+                  Get AI Recommendation
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={{
+              backgroundColor: '#2E7D32',
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 20,
+              alignItems: 'center',
+            }}>
+              <Text style={{
+                color: 'white',
+                fontSize: 20,
+                fontWeight: 'bold',
+                marginBottom: 8,
+              }}>
+                🎯 Recommendations Ready!
+              </Text>
+              <Text style={{
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: 14,
+                textAlign: 'center',
+              }}>
+                Based on your location and climate data
+              </Text>
+            </View>
+            {recommendations.map((rec, index) => (
+              <RecommendationCard
+                key={index}
+                crop={rec.crop}
+                yield={rec.yield}
+                profit={rec.profit}
+                sustainability={rec.sustainability}
+                confidence={rec.confidence}
+                onLearnMore={() => handleLearnMore(rec.crop)}
+              />
+            ))}
+            <TouchableOpacity
+              onPress={() => setShowResults(false)}
+              style={{
+                backgroundColor: 'white',
+                borderRadius: 12,
+                padding: 16,
+                alignItems: 'center',
+                borderWidth: 2,
+                borderColor: '#2E7D32',
+                marginTop: 20,
+              }}
+            >
+              <Text style={{
+                color: '#2E7D32',
+                fontSize: 16,
+                fontWeight: '600',
+              }}>
+                Try Different Location
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 }
